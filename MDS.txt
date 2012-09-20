@@ -1,0 +1,19 @@
+Data<-read.table("/Users/Ren/Desktop/demo.txt", header=T) ### Load the data file into R. To do it, you need to change the path. 
+Data
+
+#### one way to calculate the distance matrix
+a = matrix(rep(8,400),nrow = 20, ncol = 20, byrow = TRUE)  #### Create a 20 by 20 matrix with each cell as 8.
+student.dist<-a-Data
+
+#### the other way to calculate the distance matrix
+
+student.dist<-dist(Data, upper=TRUE) 
+student.dist
+
+student.mds<-cmdscale(as.matrix(student.dist), k=2, eig=T) ### this step is to perform a MDS
+
+student.mds$points ### Show the two coordinates for each item (i.e. student in the data file)
+
+plot(student.mds$points[,1], student.mds$points[,2], xlab="Dimension 1", ylab="Dimension 2", xlim=c(-10, 10), ylim=c(-10, 10), ) ### Create a plot
+
+text(student.mds$points[,1], student.mds$points[,2], labels=rownames(student.mds$points), col="red") ### Label each point 
