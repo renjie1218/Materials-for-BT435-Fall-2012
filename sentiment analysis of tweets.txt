@@ -1,0 +1,247 @@
+######To start with (you need to download the three packages from "Install Package(s)":
+library(twitteR)
+
+library(stringr)
+
+library(plyr)
+
+##### Example 1: to compare twitter users' attitudes toward Obama and Romney
+
+####search for English tweets mentioning @BarackObama and @MittRomney
+
+Obama.tweets=searchTwitter('@BarackObama', n=1000, lang="en")
+
+Romney.tweets=searchTwitter('@MittRomney', n=1000, lang="en")
+
+####extract text
+
+Obama_txt = sapply(Obama.tweets, function(x) x$getText())
+
+Romney_txt = sapply(Romney.tweets, function(x) x$getText())
+
+####create a function to remove special signs in text
+
+clean.text = function(x)
+
+{
+
+
+
+   # remove rt
+
+   x = gsub("rt", "", x)
+
+   # remove at
+
+   x = gsub("@\\w+", "", x)
+
+   # remove punctuation
+
+   x = gsub("[[:punct:]]", "", x)
+
+   # remove numbers
+
+   x = gsub("[[:digit:]]", "", x)
+
+   # remove links http
+
+   x = gsub("http\\w+", "", x)
+
+   # remove tabs
+
+   x = gsub("[ |\t]{2,}", "", x)
+
+   # remove blank spaces at the beginning
+
+   x = gsub("^ ", "", x)
+
+   # remove blank spaces at the end
+
+   x = gsub(" $", "", x)
+
+   return(x)
+
+}
+
+### call the function
+
+Obama.text =clean.text(Obama_txt)
+
+Romney.text =clean.text(Romney_txt)
+
+### download the positive and negative words from http://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html#lexicon and save the file in your local computer and change the path in the following code to call the file
+
+pos.words = scan('C:\\Users\\Jessica\\Downloads\\opinion-lexicon-English\\positive-words.txt', what='character', comment.char=';')
+
+neg.words = scan('C:\\Users\\Jessica\\Downloads\\opinion-lexicon-English\\negative-words.txt', what='character', comment.char=';')
+
+### create a function to calculate the sentiment score for each tweet
+
+score.sentiment = function(sentences, pos.words, neg.words, .progress='none')
+
+{
+
+    require(plyr)
+
+    require(stringr)
+
+     
+
+    # we got a vector of sentences. plyr will handle a list
+
+    # or a vector as an "l" for us
+
+    # we want a simple array ("a") of scores back, so we use
+
+    # "l" + "a" + "ply" = "laply":
+
+    scores = laply(sentences, function(sentence, pos.words, neg.words) {
+
+         
+
+        # clean up sentences with R's regex-driven global substitute, gsub():
+
+        sentence = gsub('[[:punct:]]', '', sentence)
+
+        sentence = gsub('[[:cntrl:]]', '', sentence)
+
+        sentence = gsub('\\d+', '', sentence)
+
+        # and convert to lower case:
+
+        sentence = tolower(sentence)
+
+ 
+
+        # split into words. str_split is in the stringr package
+
+        word.list = str_split(sentence, '\\s+')
+
+        # sometimes a list() is one level of hierarchy too much
+
+        words = unlist(word.list)
+
+ 
+
+        # compare our words to the dictionaries of positive & negative terms
+
+        pos.matches = match(words, pos.words)
+
+        neg.matches = match(words, neg.words)
+
+     
+
+        # match() returns the position of the matched term or NA
+
+        # we just want a TRUE/FALSE:
+
+        pos.matches = !is.na(pos.matches)
+
+        neg.matches = !is.na(neg.matches)
+
+ 
+
+        # and conveniently enough, TRUE/FALSE will be treated as 1/0 by sum():
+
+        score = sum(pos.matches) - sum(neg.matches)
+
+ 
+
+        return(score)
+
+    }, pos.words, neg.words, .progress=.progress )
+
+ 
+
+    scores.df = data.frame(score=scores, text=sentences)
+
+    return(scores.df)
+
+}
+
+#####calculate the score
+
+Obama.scores = score.sentiment(Obama.text, pos.words, neg.words, .progress='text')
+
+Romney.scores = score.sentiment(Romney.text, pos.words, neg.words, .progress='text')
+
+#### create histograms
+
+hist(Obama.scores$score)
+
+hist(Romney.scores$score)
+
+#### run a t-test to see if one's sentiment score is significantly higher than another one's
+
+
+
+
+####Example 2: to compare sentiment scores calculated using tweets with customer satisfaction score in the industry report
+
+####collect tweets about mobile companies
+
+att_tweets = searchTwitter("@ATT", n=1000)
+
+ver_tweets = searchTwitter("@Verizon", n=1000)
+
+mob_tweets = searchTwitter("@TMobile", n=1000)
+
+####extract text
+
+att_txt = sapply(att_tweets, function(x) x$getText())
+
+ver_txt = sapply(ver_tweets, function(x) x$getText())
+
+mob_txt = sapply(mob_tweets, function(x) x$getText())
+
+### clean text
+
+att_clean = clean.text(att_txt)
+
+ver_clean = clean.text(ver_txt)
+
+mob_clean = clean.text(mob_txt)
+
+### get sentiment scores
+
+att.scores = score.sentiment(att_clean, pos.words, neg.words, .progress='text')
+
+ver.scores = score.sentiment(ver_clean, pos.words, neg.words, .progress='text')
+
+mob.scores = score.sentiment(mob_clean, pos.words, neg.words, .progress='text')
+
+###Web scraping (extract information directly from websites etc)
+
+
+
+###download the package of XML and install it
+
+library(XML)
+
+#### You can find the customer satisfaction scores from the website http://www.theacsi.org/index.php?option=com_content&view=article&id=63&Itemid=101
+
+###replace the url I am using with the one that you want the customer satisfaction scores from 
+
+acsi.url = 'http://www.theacsi.org/index.php?option=com_content&view=article&id=147&catid=&Itemid=212&i=Wireless+Telephone+Service'
+
+acsi.df = readHTMLTable(acsi.url, header=T, which=1, 
+
+stringsAsFactors=F)
+
+acsi.df = acsi.df[,c(1,20)]
+
+####Find the scores in the industry report and input them in R
+
+head(acsi.df)
+
+####create a plot with x being the sentiment scores from tweets and y being the customer satisfaction scores from the industry report
+
+plot(c(mean(att.scores$score), mean(ver.scores$score), mean(mob.scores$score)), xlim=c(-0.1, 0.4), c(69, 70, 69))
+
+text(c(mean(att.scores$score), mean(ver.scores$score), mean(mob.scores$score)), c(69, 70, 69), labels=c("ATT", "Verizon", "Tmobile"), col="red")
+
+####plot a regression line to see if the sentiment scores match the customer satisfaction scores from the industry report
+
+a<-lm(c(69, 70, 69)~c(mean(att.scores$score), mean(ver.scores$score), mean(mob.scores$score)))
+
+abline(a)
