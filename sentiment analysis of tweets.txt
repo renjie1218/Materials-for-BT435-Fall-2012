@@ -173,7 +173,7 @@ hist(Romney.scores$score)
 
 #### run a t-test to see if one's sentiment score is significantly higher than another one's
 
-
+t.test(Obama.scores$score, Romney.scores$score)
 
 
 ####Example 2: to compare sentiment scores calculated using tweets with customer satisfaction score in the industry report
