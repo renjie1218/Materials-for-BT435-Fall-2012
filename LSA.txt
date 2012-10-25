@@ -38,7 +38,7 @@ Ryan_txt = sapply(Ryan.tweets, function(x) x$getText())
 
 write(Romney_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa","D1.txt", sep="/"))
 write(Obama_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa","D2.txt", sep="/"))
-write(JoeBiden_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa", "D3.txt", sep="/")) 
+write(Biden_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa", "D3.txt", sep="/")) 
 write(Ryan_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa","D4.txt", sep="/"))
 
 
