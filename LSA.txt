@@ -1,0 +1,74 @@
+
+#####Note: if you cannot load lsa, install Java Runtime Environment 1.7.0.9 (64-bit)
+######To start with (you need to download the several packages from "Install Package(s)":
+library(twitteR)
+
+library(stringr)
+
+library(plyr)
+
+library(lsa)
+
+library(igraph)
+
+
+##### To draw a network among Joe Biden, Paul Ryan, Mit Romney and Barack Obama based on LSA.
+
+####search for English tweets mentioning @BarackObama, @MittRomney, @JoeBiden and @PaulRyan
+
+Obama.tweets=searchTwitter('@BarackObama', n=500, lang="en")
+
+Romney.tweets=searchTwitter('@MittRomney', n=500, lang="en")
+
+Biden.tweets=searchTwitter('@JoeBiden', n=500, lang="en")
+
+Ryan.tweets=searchTwitter('@PaulRyan', n=500, lang="en")
+
+####extract text
+
+Obama_txt = sapply(Obama.tweets, function(x) x$getText())
+
+Romney_txt = sapply(Romney.tweets, function(x) x$getText())
+
+Biden_txt = sapply(Biden.tweets, function(x) x$getText())
+
+Ryan_txt = sapply(Ryan.tweets, function(x) x$getText())
+
+###Write these tweets into a file
+
+write(Romney_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa","D1.txt", sep="/"))
+write(Obama_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa","D2.txt", sep="/"))
+write(JoeBiden_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa", "D3.txt", sep="/")) 
+write(Ryan_txt, file=paste("C:\\Users\\Shawn Ning\\Desktop\\lsa","D4.txt", sep="/"))
+
+
+###Create a matrix based on the words that these people share in common.
+data(stopwords_en)
+myMatrix=textmatrix("C:\\Users\\Shawn Ning\\Desktop\\lsa", stopwords=stopwords_en)
+myMatrix
+
+###convert the matrix as rows as these people
+tdata<-t(myMatrix)
+
+###create a distance matrix among these people
+Data<-dist(tdata)
+Datanew<-as.matrix(Data)
+Datanew
+###convert this matrix into an adjacency matrix
+M<-sum(Datanew[,])/12
+V1<- ifelse(Datanew[1,] <=M & Datanew[1,]>0, 1, 0)
+V2<- ifelse(Datanew[2,] <=M & Datanew[2,]>0, 1, 0)
+V3<- ifelse(Datanew[3,] <=M & Datanew[3,]>0, 1, 0)
+V4<- ifelse(Datanew[4,] <=M & Datanew[4,]>0, 1, 0)
+
+AD<-data.frame(V1, V2, V3, V4)
+ADxoxo<-as.matrix(AD)
+rownames(ADxoxo)<- colnames(ADxoxo)<-c('MitRomney', 'BarackObama', 'JoeBiden', 'PaulRyan')
+
+ADxoxo
+
+####create the graph
+G <- graph.adjacency(ADxoxo, mode="undirected",weighted=NULL,diag=FALSE)
+V(G)$label <- V(G)$name
+plot.igraph(G)
+plot.igraph(G, vertex.label = V(G)$name, vertex.label.dist = 0.8, vertex.label.cex= 1.2, vertex.label.color="black",vertex.size = 5, vertex.color = "red", vertex.frame.color = "black", vertex.shape = "circle", edge.arrow.size=0.5, edge.color="black", edge.width = 2)
