@@ -1,10 +1,9 @@
 library(igraph)
-g <- random.graph.game(100, 1/7, directed=TRUE)
+g <- random.graph.game(10, 1/7, directed=TRUE)
 plot.igraph(g)
 betweenness(g)
 degree(g)
 closeness(g)
-centrality (g)
 evcent(g)
 
 ###measuring clustering coefficient and path length
@@ -14,8 +13,10 @@ hist(degree(g))
 
 
 ####small world network
-s <- watts.strogatz.game(1, 100, 5, 0.05)
-average.path.length(s)
-transitivity(s, type="average")
-plot.igraph(s)
-hist(degree(s))
+g <- graph.lattice( length=100, dim=1, nei=5 )
+g <- rewire.edges( g, prob=0.4 )
+hist(degree(g))
+average.path.length(g)
+transitivity(g, type="average")
+plot.igraph(g)
+hist(degree(g))
