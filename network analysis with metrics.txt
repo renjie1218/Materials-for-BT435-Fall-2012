@@ -1,0 +1,21 @@
+library(igraph)
+g <- random.graph.game(100, 1/7, directed=TRUE)
+plot.igraph(g)
+betweenness(g)
+degree(g)
+closeness(g)
+centrality (g)
+evcent(g)
+
+###measuring clustering coefficient and path length
+transitivity(g)
+average.path.length(g)
+hist(degree(g))
+
+
+####small world network
+s <- watts.strogatz.game(1, 100, 5, 0.05)
+average.path.length(s)
+transitivity(s, type="average")
+plot.igraph(s)
+hist(degree(s))
